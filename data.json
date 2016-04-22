@@ -1,0 +1,25 @@
+{
+  "adminStatus":null,
+  "cmsId":260650,
+  "environmentProfileName":null,
+  "manifestCiId":0,
+  "notificationUrl":"https://oneops.prod.walmart.com/services/assemblies/pg- orders/transition/environments/pg-orders-qaint#summary",
+  "nsPath":"/services/pg-orders/pg-orders-qaint/bom",
+  "payload":{
+    "comments":"test comment",
+    "createdBy":"jpise",
+    "deploymentId":"260650",
+    "deploymentState":"Pending",
+    "description":"some description",
+    "ops":"1 work order that rely on instances in bad state.",
+    "updatedBy":"jpise"
+  },
+  "severity":"warning",
+  "source":"deployment",
+  "subject":"Deployment cancelled by jpise",
+  "templateName":null,
+  "templateParams":null,
+  "text":"test comment. 1 work order that rely on instances in bad state.",
+  "timestamp":1410210766984,
+  "type":"deployment"
+}
