@@ -1,4 +1,4 @@
-AOM[public/images/aom.png](Application Operations & Monitoring)
+[AOM](public/images/aom.png)(Application Operations & Monitoring)
 
 AOM is an application monitoring system which provides integration between Slack and OneOps system. The high level integration point available are:
 - View notification alerts from OneOps for a given application
