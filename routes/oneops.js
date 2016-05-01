@@ -46,16 +46,26 @@ router.get('/health', function(req, res, next) {
   options.uri += '/operations/health.json?state=total'
   request(options, function(error, response, body) {
     var data = JSON.parse(body);
+    var hasUnhealhty = false;
+    var reqPath = req.param('nspath')
     for(var key in data) {//array of heath objects
       var nspath = data[key].ns
-      var reqPath = req.param('nspath')
+
       if(reqPath) {
         if(nspath.startsWith(reqPath) > 0) {
-          console.log(nspath + " filetered " + JSON.stringify(data[key].health));
+          var h = data[key].health
+          if('unhealthy' in h) {
+            hasUnhealhty = true;
+            console.log(nspath + "  " + JSON.stringify(h));
+          }
         }
+
       }  else {
         console.log(nspath + " " + JSON.stringify(data[key].health));
       }
+    }
+    if(!hasUnhealhty) {
+      console.log('nspath ' + reqPath + ' has everything in good state')
     }
   });
   res.send('OneOps API health route');
