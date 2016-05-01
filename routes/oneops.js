@@ -88,7 +88,7 @@ router.get('/metricgraph', function(req, res, next) {
   request(options, function(error, response, body) {
     var data = JSON.parse(body);
     var plotdata = {}
-    for(var key in data) {//array os heath objects
+    for(var key in data) {//array of metric objects
       if(key == 'charts') {
         var obj = data[key]
         for(var o in obj) {
@@ -114,6 +114,42 @@ router.get('/metricgraph', function(req, res, next) {
   });
   res.send('OneOps API metric graph route');
 });
+
+
+function getInstances(orgname, assembly, platform, enviornment, component) {
+  environment.org = orgname
+  var options = config.options(environment)
+  options.uri += '/assemblies/' + assembly + '/operations/environments/' + enviornment + '/platforms/'
+  + platform + '/components/' + component + '/instances.json?instances_state=all'
+
+  var ids = []
+  request(options, function(error, response, body) {
+    var data = JSON.parse(body);
+    for(var key in data) {
+      ids.push(data[key].ciId)
+    }
+    return ids
+  });
+}
+
+function getMonitors(orgname, assembly, platform, enviornment, component, monitor) {
+  environment.org = orgname
+  var options = config.options(environment)
+  options.uri += '/assemblies/' + assembly + '/transition/environments/' + enviornment + '/platforms/' + platform
+  + '/components/' + component + '/monitors.json'
+
+  var ids = []
+  request(options, function(error, response, body) {
+    var data = JSON.parse(body);
+    for(var key in data) {
+      var name = data[key].ciName
+
+      if(name && name.endsWith(monitor))
+        ids.push(data[key].ciId)
+    }
+    return ids
+  });
+}
 
 
 router.post('/notifications', function(req, res, next) {
