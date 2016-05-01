@@ -93,13 +93,13 @@ router.get('/metricgraph', function(req, res, next) {
       }
     }
     console.log(JSON.stringify(plotdata))
-    // plot({
-    //   data:	plotdata,
-    //   filename:	'output.svg',
-    //   format: 'svg',
-    //   logscale:   true,
-    //   title: 'metric graph'
-    // });
+    plot({
+      data:	plotdata,
+      filename:	'output.svg',
+      format: 'svg',
+      logscale:   true,
+      title: 'metric graph'
+    });
 
   });
   res.send('OneOps API metric graph route');
