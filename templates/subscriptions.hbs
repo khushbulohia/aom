@@ -1,0 +1,8 @@
+{{#if nspaths.length}}
+	This channel is monitoring these nspaths\n
+	{{#each nspaths}}
+		>{{this}}\n
+	{{/each}}
+{{else}}
+	This channel did not subscribe for any nspaths. Please register to monitor.
+{{/if}}
