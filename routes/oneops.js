@@ -4,6 +4,7 @@ var http=require('http')
 var request = require("request");
 var config = require("../config.js")
 var plot = require('plotter').plot;
+var client = require('../api-client/client.js')
 
 var environment = {
   endpoint : process.argv[2] ? process.argv[2] : ONEOPS_ENDPOINT,
@@ -102,55 +103,31 @@ router.get('/metricgraph', function(req, res, next) {
         }
       }
     }
-    console.log(JSON.stringify(plotdata))
-    plot({
-      data:	plotdata,
-      filename:	'output.svg',
-      format: 'svg',
-      logscale:   true,
-      title: 'metric graph'
-    });
+    // console.log(JSON.stringify(plotdata))
+    // plot({
+    //   data:	plotdata,
+    //   filename:	'output.svg',
+    //   format: 'svg',
+    //   logscale:   true,
+    //   title: 'metric graph'
+    // });
 
   });
   res.send('OneOps API metric graph route');
 });
 
 
-function getInstances(orgname, assembly, platform, enviornment, component) {
-  environment.org = orgname
-  var options = config.options(environment)
-  options.uri += '/assemblies/' + assembly + '/operations/environments/' + enviornment + '/platforms/'
-  + platform + '/components/' + component + '/instances.json?instances_state=all'
+router.get('/getmonit', function(req, res, next) {
+  var org = req.param('orgname')
+  var assembly = req.param('assembly')
+  var enviornment = req.param('enviornment')
+  var platform = req.param('platform')
+  var monitor = req.param('monitor')
+  var component = req.param('component')
 
-  var ids = []
-  request(options, function(error, response, body) {
-    var data = JSON.parse(body);
-    for(var key in data) {
-      ids.push(data[key].ciId)
-    }
-    return ids
-  });
-}
-
-function getMonitors(orgname, assembly, platform, enviornment, component, monitor) {
-  environment.org = orgname
-  var options = config.options(environment)
-  options.uri += '/assemblies/' + assembly + '/transition/environments/' + enviornment + '/platforms/' + platform
-  + '/components/' + component + '/monitors.json'
-
-  var ids = []
-  request(options, function(error, response, body) {
-    var data = JSON.parse(body);
-    for(var key in data) {
-      var name = data[key].ciName
-
-      if(name && name.endsWith(monitor))
-        ids.push(data[key].ciId)
-    }
-    return ids
-  });
-}
-
+  var ids = client.getInstances(org, assembly, platform, enviornment, component)
+  console.log(ids)
+});
 
 router.post('/notifications', function(req, res, next) {
   var data=req.body
