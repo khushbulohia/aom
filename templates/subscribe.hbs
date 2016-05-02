@@ -1,0 +1,15 @@
+{{#if successful}}
+	Registered {{nspath}} successfully.\n
+	{{#if channel}}
+		You will start getting notifications on this channel <#{{channel}}>.
+	{{else}}
+		You will start getting notifications on this conversation.
+	{{/if}}
+{{else}}
+	Unable to register {{nspath}}.\n 
+	{{#if error}}
+		Please check this error: {{error}}
+	{{else}}
+		Please contact #team-aom
+	{{/if}}
+{{/if}}
