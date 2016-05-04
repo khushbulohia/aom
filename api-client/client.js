@@ -1,6 +1,8 @@
 var config = require("./config.js")
 var request = require("request");
 
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+
 var environment = {
   endpoint : process.argv[2] ? process.argv[2] : ONEOPS_ENDPOINT,
   org: '',
@@ -29,7 +31,7 @@ module.exports.getMonitorIds = function getMonitorIds(orgname, assembly, platfor
     var options = config.options(environment)
     options.uri += '/assemblies/' + assembly + '/transition/environments/' + enviornment + '/platforms/' + platform
     + '/components/' + component + '/monitors.json'
-
+    console.log(options)
     var ids = []
     request(options, function(error, response, body) {
       var data = JSON.parse(body);
@@ -52,6 +54,7 @@ module.exports.getMonitorIds = function getMonitorIds(orgname, assembly, platfor
       request(options, function(error, response, body) {
         var data = JSON.parse(body);
         var plotdata = {}
+        var step = 0, start= 0
         for(var key in data) {//array of metric objects
           if(key == 'charts') {
             var obj = data[key]
@@ -60,10 +63,14 @@ module.exports.getMonitorIds = function getMonitorIds(orgname, assembly, platfor
               for(var s in seriesdata) {
                 var sdata = seriesdata[s]
                 var md = sdata.header.metric
+                step = sdata.header.step
+                start = sdata.header.start
                 // plotdata.put(md,sdata.data)
                 plotdata[md] = sdata.data
               }
             }
+            plotdata.step = step
+            plotdata.start = start
           }
         }
         callback(plotdata)
@@ -112,4 +119,26 @@ module.exports.getMonitorIds = function getMonitorIds(orgname, assembly, platfor
       });
     }
 
-// getEnvHealth('stgqe', 'tomcat', 'lbtest2')
+
+    function getMon(orgname, assembly, platform, enviornment, component, monitor) {
+        environment.org = orgname
+        var options = config.options(environment)
+        options.uri += '/assemblies/' + assembly + '/transition/environments/' + enviornment + '/platforms/' + platform
+        + '/components/' + component + '/monitors.json'
+        console.log(options)
+        var ids = []
+        request(options, function(error, response, body) {
+          var data = JSON.parse(body);
+          for(var key in data) {
+            var name = data[key].ciName
+
+            if(name && name.endsWith(monitor))
+              ids.push(data[key].ciId)
+          }
+          console.log (ids)
+        });
+      }
+
+
+getMon('int', 'walmartlabs-tomcat', 'web','dev','compute','cpu')
+// getMon('stgqe', 'walmartlabs-tomcat', 'web','stg','compute','cpu')

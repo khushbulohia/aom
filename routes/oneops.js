@@ -61,16 +61,17 @@ router.get('/metricgraph', function(req, res, next) {
       if('instances' in k) {
           int = k.instances
       } else   if('monitorId' in k) {
-        mon = k.monitorId
+        mon = k.monitorId[0]
       }
     }
 
     var plots = {}
-    for(var i = 0 ;i < int.length; i++) {
-      for(var j = 0 ;j < mon.length; j++) {
-        client.getMetricGraph(org, assembly, platform, enviornment, component, int[i] ,mon[j], function(plotdata){
+    // for(var i = 0 ;i < int.length; i++) {
+      // for(var j = 0 ;j < mon.length; j++) {
+        client.getMetricGraph(org, assembly, platform, enviornment, component, int[0] ,mon, function(plotdata){
 
           console.log(JSON.stringify(plotdata))
+          res.send(plotdata);
           // plot({
           //   data:	plotdata,
           //   filename:	'output.svg',
@@ -79,9 +80,9 @@ router.get('/metricgraph', function(req, res, next) {
           //   title: 'metric graph'
           // });
         });
-      }
-    }
-    res.send(plots);
+      // }
+    // }
+
   });
 
 });
