@@ -32,7 +32,7 @@ function getMonitorIds(orgname, assembly, platform, enviornment, component, moni
     var options = config.options(environment)
     options.uri += '/assemblies/' + assembly + '/transition/environments/' + enviornment + '/platforms/' + platform
     + '/components/' + component + '/monitors.json'
-    console.log(options)
+
     var ids = []
     request(options, function(error, response, body) {
       var data = JSON.parse(body);
@@ -72,6 +72,7 @@ function getMetricGraph(orgname, assembly, platform, enviornment, component, ins
             }
             plotdata.step = step
             plotdata.start = start
+            plotdata.instance = instance
           }
         }
         callback(plotdata)
@@ -120,7 +121,7 @@ function getMetricGraph(orgname, assembly, platform, enviornment, component, ins
       });
     }
 
-    module.exports.getMetricData = function getMetricData(orgname, assembly, platform, enviornment, monitor, callback) {
+   module.exports.getMetricData = function getMetricData(orgname, assembly, platform, enviornment, monitor, callback) {
       async.parallel([
        function(callback){
          getInstances(orgname, assembly, platform, enviornment, 'compute', function(ids){
@@ -140,34 +141,26 @@ function getMetricGraph(orgname, assembly, platform, enviornment, component, ins
        ],
 
       function(err, results) {
-        var int = 0, mon = 0
+        var items = 0, mon = 0
         for(var key in results) {
           var k = results[key]
           if('instances' in k) {
-              int = k.instances
+              items = k.instances
           } else   if('monitorId' in k) {
             mon = k.monitorId[0]
           }
         }
-
         var plots = {}
-        // for(var i = 0 ;i < int.length; i++) {
-          // for(var j = 0 ;j < mon.length; j++) {
-            getMetricGraph(orgname, assembly, platform, enviornment, 'compute', int[0] ,mon, function(plotdata){
 
-              // console.log(JSON.stringify(plotdata))
-              callback(plotdata);
-              // plot({
-              //   data:	plotdata,
-              //   filename:	'output.svg',
-              //   format: 'svg',
-              //   logscale:   true,
-              //   title: 'metric graph'
-              // });
-            });
-          // }
-        // }
-
-      });
-      }
-// getMetricData('int', 'walmartlabs-tomcat', 'web','dev','cpu')
+        async.forEach(items, function(item, next) {
+          console.log('item', item)
+          getMetricGraph(orgname, assembly, platform, enviornment, 'compute', item ,mon, function(plotdata) {
+            plots[plotdata.instance] = plotdata
+            console.log('instance' , plotdata.instance)
+            next()
+          });
+        }, function(d) {
+            callback(plots)
+        });
+    });
+  }

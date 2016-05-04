@@ -34,56 +34,10 @@ router.get('/metricgraph', function(req, res, next) {
   var enviornment = req.param('enviornment')
   var platform = req.param('platform')
   var monitor = req.param('monitor')
-  var component = req.param('component')
 
-  async.parallel([
-   function(callback){
-     client.getInstances(org, assembly, platform, enviornment, component, function(ids){
-       var data = {
-         instances : ids
-       }
-       callback(null, data)
-     })
-   },
-   function(callback){
-     client.getMonitorIds(org, assembly, platform, enviornment, component, monitor, function(ids){
-       var data = {
-         monitorId : ids
-       }
-       callback(null, data)
-     })}
-   ],
-
-  function(err, results) {
-    var int = 0, mon = 0
-    for(var key in results) {
-      var k = results[key]
-      if('instances' in k) {
-          int = k.instances
-      } else   if('monitorId' in k) {
-        mon = k.monitorId[0]
-      }
-    }
-
-    var plots = {}
-    // for(var i = 0 ;i < int.length; i++) {
-      // for(var j = 0 ;j < mon.length; j++) {
-        client.getMetricGraph(org, assembly, platform, enviornment, component, int[0] ,mon, function(plotdata){
-
-          console.log(JSON.stringify(plotdata))
-          res.send(plotdata);
-          // plot({
-          //   data:	plotdata,
-          //   filename:	'output.svg',
-          //   format: 'svg',
-          //   logscale:   true,
-          //   title: 'metric graph'
-          // });
-        });
-      // }
-    // }
-
-  });
+  client.getMetricData(org, assembly, platform, enviornment, monitor, function(data){
+    res.send(data)
+  })
 
 });
 
