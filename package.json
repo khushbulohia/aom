@@ -16,6 +16,6 @@
     "request": "^2.72.0",
     "serve-favicon": "~2.3.0",
     "request": "^2.72.0",
-    "slack-quick-bots": "^2.0.3"
+    "slack-quick-bots": "^2.0.4"
   }
 }
