@@ -1,0 +1,14 @@
+{{#if health}}
+	>>>Here is a snapshot of your applications health at *_{{nspath}}_*\n
+	{{#if health.good}}
+		:ok_check: {{health.good}} (good)\n
+	{{/if}}
+	{{#if health.notify}}
+		:grey_exclamation: {{health.notify}} (notify)\n
+	{{/if}}
+	{{#if health.unhealthy}}
+		:exclamation: {{health.unhealthy}} (not healthy)\n
+	{{/if}}
+{{else}}
+	Didn't find health for the application at {{nspath}}.
+{{/if}}

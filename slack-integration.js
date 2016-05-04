@@ -7,6 +7,10 @@ let request = require("request");
 const subscribeTemplate = fs.readFileSync('./templates/subscribe.hbs', 'utf8');
 const subscriptionsTemplate = fs.readFileSync('./templates/subscriptions.hbs', 'utf8');
 const unsubscribeTemplate = fs.readFileSync('./templates/unsubscribe.hbs', 'utf8');
+const healthTemplate = fs.readFileSync('./templates/health.hbs', 'utf8');
+let oneOpsClient = require("./api-client/client.js")
+
+
 let yargs = require('yargs')
 	.usage('node $0 [options]')
 	.option('t', {
@@ -67,6 +71,7 @@ var config = {
 			subscribe: {
 				commandType: 'DATA',
         		allowedParam: ['*'],
+				helpText: '>    Subscribes current channel to receive notifications. Usage `subscribe organization [assembly [environment [platform]]]`\\n',
         		template: function() {
           			return handlebars.compile(subscribeTemplate);
         		},
@@ -88,9 +93,38 @@ var config = {
 		          	});
         		}
       		},      		
-			unsubscribe: {
+			health: {
 				commandType: 'DATA',
         		allowedParam: ['*'],
+				helpText: '>    Provides health of application at given hierarchy. Usage `health organization assembly [environment]`\\n',
+        		template: function() {
+          			return handlebars.compile(healthTemplate);
+        		},
+        		data: function(input, options, callback) {
+			        let nspath = createNsPath(input.params)
+			        if(input.params.length == 2) {
+						oneOpsClient.getAssemblyHealth(input.params[0], input.params[1], function(health) {
+							callback({
+				            	health: health,
+				            	nspath: nspath
+				          	});
+						})	
+					} else if (input.params.length == 3) {
+						oneOpsClient.getEnvHealth(input.params[0], input.params[1], input.params[3], function(health) {
+							callback({
+				            	health: health,
+				            	nspath: nspath
+				          	});
+						})
+			        } else {
+			        	callback({});
+			        }
+        		}
+      		},
+      		unsubscribe: {
+				commandType: 'DATA',
+        		allowedParam: ['*'],
+				helpText: '>    Unsubscribe and active subscription. Usage `unsubscribe organization [assembly [environment [platform]]]` (_Not supported yet_)\\n',
         		template: function() {
           			return handlebars.compile(unsubscribeTemplate);
         		},
@@ -101,7 +135,8 @@ var config = {
       		},
 			subscriptions: {
 				commandType: 'DATA',
-        		allowedParam: ['*'],
+        		allowedParam: [''],
+				helpText: '>    Show list of subscriptions on the current channel. Usage `subscriptions`\\n',
         		template: function() {
           			return handlebars.compile(subscriptionsTemplate);
         		},
@@ -119,38 +154,41 @@ var config = {
       		},
       		trend: {
         		commandType: 'DATA',
+				helpText: '>    Provides trends of monitor data. Usage `trend organization assembly environment platform cpu|load`\\n',        		
         		responseType: {
-          			type: 'svg',
-          			ylabel: 'Load-metric-name',
+          			type: 'png',
+          			ylabel: 'Value',
+          			xlabel: 'Metrics',
           			timeUnit: 'm',
           			title: 'Trend',
           			logscale: false,
           			style: 'lines'
         		},
         		allowedParam: ['*'],
-        		data: function(input, options, callback) {
-        			// Identify monitor to get metrics for. Get metrics
-        			// Create data in format below.
-        			var multiLineData = {
-		                "load1": {1462079460:0.041, 1462079520:0.06, 1462079580:0.062},
-		     	        "load5": {1462079460:0.031, 1462079520:0.041, 1462079580:0.041},
-		                "load15": {1462079460:0.001, 1462079520:0.001, 1462079580:0.001}
-			        }
-          			var dataArr = [ // Sample data
-			            [100, 120, 130, 110, 123, 90],
-			            [1, 120, 130, 110, 90, 85],
-			            [1, 120, 130, 1010, 140, 145],
-			            [100, 120, 130, 250, 140, 145],
-			            [100, 120, 130, 300, 140, 145],
-			            [100, 400, 130, 300, 140, 145],
-			            [100, 90, 130, 300, 140, 145],
-			            [100, 120, 130, 1010, 150, 90]
-	          		];
-					callback(multiLineData);
+        		data: function(input, options, callback) {        			
+					oneOpsClient.getMetricData(input.params[0], input.params[1], input.params[2], input.params[3], input.params[4], function(response) {
+						let step = response.step
+						let start = response.start
+						let data = {}
+						for(let key in response) {
+							if(key === 'step' || key === 'start') {
+								continue
+							}
+							let metrics = {}
+							let t = start
+							for(let value of response[key]) {
+								metrics[t] = value
+								t = t + step
+							}
+							data[key] =  metrics
+						}
+						callback(data);
+					})
 				}
       		},
 			testNotify: {
 				commandType: 'DATA',
+				helpText: '>    *Test command dont use.*\\n',        						
         		allowedParam: ['*'],
         		template: function() {
           			return handlebars.compile('Test notification. Should have received alert on channels {{channels}}');
