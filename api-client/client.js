@@ -1,5 +1,6 @@
 var config = require("./config.js")
 var request = require("request");
+var async=require('async')
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
@@ -9,7 +10,7 @@ var environment = {
   authkey: process.argv[3] ? process.argv[3] : AUTH_TOKEN
 }
 
-module.exports.getInstances = function getInstances(orgname, assembly, platform, enviornment, component, callback) {
+function getInstances(orgname, assembly, platform, enviornment, component, callback) {
     environment.org = orgname
     var options = config.options(environment)
     options.uri += '/assemblies/' + assembly + '/operations/environments/' + enviornment + '/platforms/'
@@ -26,7 +27,7 @@ module.exports.getInstances = function getInstances(orgname, assembly, platform,
   }
 
 
-module.exports.getMonitorIds = function getMonitorIds(orgname, assembly, platform, enviornment, component, monitor, callback) {
+function getMonitorIds(orgname, assembly, platform, enviornment, component, monitor, callback) {
     environment.org = orgname
     var options = config.options(environment)
     options.uri += '/assemblies/' + assembly + '/transition/environments/' + enviornment + '/platforms/' + platform
@@ -45,7 +46,7 @@ module.exports.getMonitorIds = function getMonitorIds(orgname, assembly, platfor
     });
   }
 
-  module.exports.getMetricGraph = function getMetricGraph(orgname, assembly, platform, enviornment, component, instance, monitorId, callback) {
+function getMetricGraph(orgname, assembly, platform, enviornment, component, instance, monitorId, callback) {
       environment.org = orgname
       var options = config.options(environment)
       options.uri += '/assemblies/' + assembly + '/operations/environments/' + enviornment + '/platforms/' + platform
@@ -119,26 +120,54 @@ module.exports.getMonitorIds = function getMonitorIds(orgname, assembly, platfor
       });
     }
 
+    module.exports.getMetricData = function getMetricData(orgname, assembly, platform, enviornment, monitor, callback) {
+      async.parallel([
+       function(callback){
+         getInstances(orgname, assembly, platform, enviornment, 'compute', function(ids){
+           var data = {
+             instances : ids
+           }
+           callback(null, data)
+         })
+       },
+       function(callback){
+         getMonitorIds(orgname, assembly, platform, enviornment, 'compute', monitor, function(ids){
+           var data = {
+             monitorId : ids
+           }
+           callback(null, data)
+         })}
+       ],
 
-    function getMon(orgname, assembly, platform, enviornment, component, monitor) {
-        environment.org = orgname
-        var options = config.options(environment)
-        options.uri += '/assemblies/' + assembly + '/transition/environments/' + enviornment + '/platforms/' + platform
-        + '/components/' + component + '/monitors.json'
-        console.log(options)
-        var ids = []
-        request(options, function(error, response, body) {
-          var data = JSON.parse(body);
-          for(var key in data) {
-            var name = data[key].ciName
-
-            if(name && name.endsWith(monitor))
-              ids.push(data[key].ciId)
+      function(err, results) {
+        var int = 0, mon = 0
+        for(var key in results) {
+          var k = results[key]
+          if('instances' in k) {
+              int = k.instances
+          } else   if('monitorId' in k) {
+            mon = k.monitorId[0]
           }
-          console.log (ids)
-        });
+        }
+
+        var plots = {}
+        // for(var i = 0 ;i < int.length; i++) {
+          // for(var j = 0 ;j < mon.length; j++) {
+            getMetricGraph(orgname, assembly, platform, enviornment, 'compute', int[0] ,mon, function(plotdata){
+
+              // console.log(JSON.stringify(plotdata))
+              callback(plotdata);
+              // plot({
+              //   data:	plotdata,
+              //   filename:	'output.svg',
+              //   format: 'svg',
+              //   logscale:   true,
+              //   title: 'metric graph'
+              // });
+            });
+          // }
+        // }
+
+      });
       }
-
-
-getMon('int', 'walmartlabs-tomcat', 'web','dev','compute','cpu')
-// getMon('stgqe', 'walmartlabs-tomcat', 'web','stg','compute','cpu')
+// getMetricData('int', 'walmartlabs-tomcat', 'web','dev','cpu')
