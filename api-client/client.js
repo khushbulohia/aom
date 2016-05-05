@@ -121,7 +121,7 @@ function getMetricGraph(orgname, assembly, platform, enviornment, component, ins
       });
     }
 
-   module.exports.getMetricData = function getMetricData(orgname, assembly, platform, enviornment, monitor, callback) {
+   module.exports.getMetricData = function getMetricData(orgname, assembly, enviornment, platform, monitor, callback) {
       async.parallel([
        function(callback){
          getInstances(orgname, assembly, platform, enviornment, 'compute', function(ids){

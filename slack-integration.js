@@ -167,22 +167,25 @@ var config = {
         		allowedParam: ['*'],
         		data: function(input, options, callback) {        			
 					oneOpsClient.getMetricData(input.params[0], input.params[1], input.params[2], input.params[3], input.params[4], function(response) {
-						let step = response.step
-						let start = response.start
-						let data = {}
-						for(let key in response) {
-							if(key === 'step' || key === 'start') {
-								continue
+						for(let instanceKey in response) {
+							let instanceDetails = response[instanceKey]
+							let step = instanceDetails.step
+							let start = instanceDetails.start
+							let data = {}
+							for(let key in instanceDetails) {
+								if(key === 'step' || key === 'start' || key === 'instance') {
+									continue
+								}
+								let metrics = {}
+								let t = start
+								for(let value of instanceDetails[key]) {
+									metrics[t] = value
+									t = t + step
+								}
+								data[key] =  metrics
 							}
-							let metrics = {}
-							let t = start
-							for(let value of response[key]) {
-								metrics[t] = value
-								t = t + step
-							}
-							data[key] =  metrics
+							callback(data);
 						}
-						callback(data);
 					})
 				}
       		},
