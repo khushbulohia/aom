@@ -110,7 +110,7 @@ var config = {
 				          	});
 						})	
 					} else if (input.params.length == 3) {
-						oneOpsClient.getEnvHealth(input.params[0], input.params[1], input.params[3], function(health) {
+						oneOpsClient.getEnvHealth(input.params[0], input.params[1], input.params[2], function(health) {
 							callback({
 				            	health: health,
 				            	nspath: nspath
