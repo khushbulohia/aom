@@ -135,7 +135,7 @@ var config = {
       		},
 			subscriptions: {
 				commandType: 'DATA',
-        		allowedParam: [''],
+        		allowedParam: ['*'],
 				helpText: '>    Show list of subscriptions on the current channel. Usage `subscriptions`\\n',
         		template: function() {
           			return handlebars.compile(subscriptionsTemplate);
@@ -198,7 +198,7 @@ var config = {
         		},
         		data: function(input, options, callback) {
 					let nspath = createNsPath(input.params)
-		          	let channelsNotified = onNotification(nspath, 'sample notification, you may have subscribed to notifications at nspath: ' + nspath)
+		          	let channelsNotified = onNotification(nspath, 'sample notification, you may have subscribed to notifications at nspath: ' + nspath, 'good')
 		          	callback({channels: channelsNotified});
         		}
       		}
@@ -245,7 +245,14 @@ function loadSubscriptionsFromFile() {
 }
 
 // When there are new notification from OneOps invoke this with nspath. message may need some formatting.
-function onNotification(nspath, message) {
+module.exports.onNotification = function onNotification(nspath, message, state) {
+	nspath = nspath.replace('bom/','')
+	let icon = ':white_check_mark:'
+	if(state === 'notify') {
+		icon = ':warning:'
+	} else if (state === 'unhealthy') {
+		icon = ':x:'
+	}
 	let channelsToNotify = []
 	for(let sub of subscriptions) {
 		if(nspath.startsWith(sub.nspath)) {
@@ -258,7 +265,7 @@ function onNotification(nspath, message) {
 		let postBody = {
 			channel: channel,
 			username: 'aom',
-			text: message
+			text: icon + ' ' + message
 		}
 		let options = {
 			uri : webHookUrl,
@@ -286,7 +293,7 @@ function createNsPath(params) {
 	let org, assembly, environment, platform = null        		
 	if(params.length > 0) {
 		org = params[0]
-		nspath = org
+		nspath = '/' + org
 	}
 	if(params.length > 1) {
 		assembly = params[1]
