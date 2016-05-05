@@ -157,12 +157,11 @@ var config = {
 				helpText: '>    Provides trends of monitor data. Usage `trend organization assembly environment platform cpu|load`\\n',        		
         		responseType: {
           			type: 'png',
-          			ylabel: 'Value',
-          			xlabel: 'Metrics',
+          			xlabel: 'Time',
           			timeUnit: 'm',
-          			title: 'Trend',
           			logscale: false,
-          			style: 'lines'
+          			style: 'lines',
+          			exec: { encoding: 'utf16' }
         		},
         		allowedParam: ['*'],
         		data: function(input, options, callback) {        			
@@ -183,6 +182,11 @@ var config = {
 									t = t + step
 								}
 								data[key] =  metrics
+							}
+							let result = {
+								response: data,
+								ylabel: input.params[4],
+								title: 'Trend of ' + input.params[4] + ' for ' + instanceKey
 							}
 							callback(data);
 						}
