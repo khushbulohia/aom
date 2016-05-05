@@ -188,7 +188,7 @@ var config = {
 								ylabel: input.params[4],
 								title: 'Trend of ' + input.params[4] + ' for ' + instanceKey
 							}
-							callback(data);
+							callback(result);
 						}
 					})
 				}
